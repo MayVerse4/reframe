@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReFrame - PDF Script Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Gradient Text for ReFrame */
+        .gradient-text {
+            background: linear-gradient(to right, #FFA500, #FF4500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Starry Effect for Top Bar */
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            animation: twinkle 1.5s infinite ease-in-out; /* Increased speed */
+        }
+        /* Moving Border Animation for Generate Button */
+        @keyframes glowing-border {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; } /* Bounce back effect */
+        }
+        .glow-border {
+            position: relative;
+            border: 2px solid transparent;
+            background: linear-gradient(90deg, #FFA500, #FF4500, #FFA500);
+            background-size: 300% 100%;
+            animation: glowing-border 2s ease-in-out infinite;
+            border-radius: 8px;
+        }
+        .glow-border::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: inherit;
+            filter: blur(5px);
+            z-index: -1;
+        }
+
+        /* Custom Scrollbar */
+        #script-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #script-output::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #FFA500, #FF4500);
+            border-radius: 4px;
+        }
+
+        #script-output::-webkit-scrollbar-track {
+            background: #222; /* Dark Gray */
+        }
+
+        /* Loading Spinner */
+        #loading-spinner {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #FFA500; /* Orange */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        .neon-text {
+            display: inline-block;
+            color: #feffff;
+            text-shadow: 0 0 0px #FFA500, 0 0 0px #FFA500, 0 0 0px #FFA500;
+            transition: text-shadow 0.3s ease-in-out, color 0.3s ease-in-out;
+            letter-spacing: -2.5px;
+        }
+
+        .neon-text:hover {
+            color: #ffcf0d;
+            text-shadow: 0 0 40px #FFA500, 0 0 40px #FFA500, 0 0 50px #FFA500;
+        }
+
+        .neon-text:hover .letter {
+            animation: wave 0.4s ease-in-out forwards;
+            display: inline-block;
+        }
+
+        .letter:nth-child(1) { animation-delay: 0s; }
+        .letter:nth-child(2) { animation-delay: 0.05s; }
+        .letter:nth-child(3) { animation-delay: 0.1s; }
+        .letter:nth-child(4) { animation-delay: 0.15s; }
+        .letter:nth-child(5) { animation-delay: 0.2s; }
+        .letter:nth-child(6) { animation-delay: 0.25s; }
+        .letter:nth-child(7) { animation-delay: 0.3s; }
+
+
+
+        @keyframes wave {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }  /* Slightly bigger */
+            100% { transform: scale(1); }
+        }
+
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+
+
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen relative">
+    <header class="relative flex items-center justify-between p-4 bg-[#080808] shadow-md"> <!-- Dim Gray Background -->
+        <div class="flex items-center space-x-3">
+            <a href="{{ url_for('welcome') }}" class="flex items-center space-x-3">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="ReFrame Logo" class="w-9 h-9">
+                <h1 class="text-2xl font-semibold gradient-text">ReFrame</h1>
+            </a>
+        </div>
+        <a href="{{ url_for('creator') }}"  class="text-xl font-semibold neon-text mr-3">
+            <span class="letter">C</span>
+            <span class="letter">r</span>
+            <span class="letter">e</span>
+            <span class="letter">a</span>
+            <span class="letter">t</span>
+            <span class="letter">o</span>
+            <span class="letter">r</span>
+        </a>
+    </header>
+    
+    <main class="max-w-5xl mx-auto p-6 bg-[#acacac] bg-opacity-5 rounded-lg shadow-lg mt-10">
+        <h2 class="text-3xl font-bold text-center mb-6">Generate Video Script</h2>
+    
+        <!-- Flex Container for Desktop Layout -->
+        <div class="flex flex-col md:flex-row gap-6">
+            
+            <!-- Left Side: Form -->
+            <div class="md:w-1/2 w-full">
+                <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <label class="block">Enter Topic:</label>
+                    <input type="text" id="topic" name="topic" required 
+                        class="w-full px-4 py-2 rounded-lg bg-[#080808] border border-gray-700 focus:ring focus:ring-orange-400">
+    
+                    <label class="block">Additional Context (Optional):</label>
+                    <textarea id="additional_context" name="additional_context" rows="4" 
+                        class="w-full px-4 py-2 rounded-lg bg-[#080808] border border-gray-700 focus:ring focus:ring-orange-400"></textarea>
+    
+
+                        
+                    <label class="block">Upload PDF (Optional):</label>
+                    <label for="file" class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#080808] text-white rounded-lg border border-gray-700 shadow-md hover:bg-[#1b1b1b] transition">
+                        
+                        <img src="static/folder-icon.png" alt="Folder Icon" class="h-6 w-6 mr-2">
+                        <span id="fileText">Choose File</span>
+                        <input type="file" id="file" name="file" accept=".pdf" class="hidden">
+                    </label>
+                    <input type="file" id="file" name="file" accept=".pdf" class="hidden">
+                     
+                        
+    
+
+
+                    <label class="block">Select Script Format:</label>
+                    <select id="format" name="format" required 
+                        class="w-full px-4 py-2 rounded-lg bg-[#080808] border border-gray-700 focus:ring focus:ring-orange-400">
+                        <option value="short">Short (60 to 90 seconds)</option>
+                        <option value="medium">Medium (10 to 15 minutes)</option>
+                        <option value="long">Long (25 to 30 minutes)</option>
+                    </select>
+    
+                    <button type="submit" id="generate-btn"
+                            class="w-full py-3 bg-black glow-border text-white font-semibold rounded-lg shadow-md transition-all relative flex items-center justify-center">
+                        <span id="button-text">Generate Script</span>
+                        <div id="loading-spinner"></div>
+                    </button>
+                </form>
+            </div>
+    
+            <!-- Right Side: Output Box -->
+            <div class="md:w-1/2 w-full">
+                <div id="script-output" class="p-4 bg-[#080808] rounded-lg min-h-[200px] max-h-[400px] overflow-auto border border-gray-700 relative">
+                    <h3 class="text-xl font-bold mb-2">Generated Script:</h3>
+                    <button id="copy-btn" class="absolute top-2 right-2 p-2 bg-black text-white rounded-md hover:bg-[#1b1b1b] transition">
+                        <img src="static/copy.png" alt="Copy" class="h-5 w-5">
+                    </button>
+                    <div id="output-content" class="whitespace-pre-wrap break-words"></div> <!-- Ensures text wraps properly -->
+                </div>
+            </div>
+
+            <script>
+                document.getElementById('upload-form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    let formData = new FormData(this);
+                    
+                     // Show the loading spinner & hide text
+                    document.getElementById('loading-spinner').style.display = "block";
+                    document.getElementById('button-text').style.display = "none";
+
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let outputContent = document.getElementById("output-content");
+                        outputContent.innerHTML = ""; // Clear previous output
+                        
+                        function readChunk() {
+                            reader.read().then(({ done, value }) => {
+                                if (done){
+                                    document.getElementById('loading-spinner').style.display = 'none'; // Hide loading once done
+                                    document.getElementById('button-text').style.display = "block";
+                                    return;
+                                }
+
+                                let textChunk = decoder.decode(value, { stream: true });
+
+                                // Convert Markdown-style bold/italic to HTML
+                                textChunk = textChunk
+                                    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')  // **bold** → <b>bold</b>
+                                    .replace(/\*(.*?)\*/g, '<i>$1</i>');    // *italic* → <i>italic</i>
+
+                                outputContent.innerHTML += textChunk;
+                                readChunk();
+                            });
+                        }
+                        readChunk();
+                    })
+                    .catch(error => {
+                        document.getElementById('output-content').innerHTML = `<p class='text-red-500'>Error: ${error}</p>`;
+                        document.getElementById('loading-indicator').style.display = 'none'; // Hide loading on error
+                        document.getElementById('button-text').style.display = "block"; 
+                    });
+                });
+            </script>
+
+            <script>
+                //Copy Button
+                document.getElementById('copy-btn').addEventListener('click', function () {
+                    let text = document.getElementById('output-content').innerText;
+                    navigator.clipboard.writeText(text).then(() => {
+                        let btn = document.getElementById('copy-btn');
+                        btn.innerHTML = '<img src="static/done.png" alt="Copy" class="h-5 w-5">';  // Change icon to checkmark
+                        setTimeout(() => { btn.innerHTML = '<img src="static/copy.png" alt="Copy" class="h-5 w-5">'; }, 1500); // Revert back after 1.5s
+                    }).catch(err => console.error("Failed to copy:", err));
+                });
+            </script>
+
+            <script>
+                // Choose file button
+                document.getElementById('file').addEventListener('change', function(event) {
+                    let fileName = event.target.files[0] ? event.target.files[0].name : "Choose File";
+                    document.getElementById('fileText').textContent = fileName;
+                });
+            </script>
+
+
+            <script>
+                // Star Animation
+                function createStars() {
+                    const header = document.querySelector('header');
+                    for (let i = 0; i < 50; i++) {
+                        const star = document.createElement('div');
+                        star.classList.add('star');
+                        star.style.top = `${Math.random() * 100}%`;
+                        star.style.left = `${Math.random() * 100}%`;
+                        star.style.animationDuration = `${Math.random() * 2 + 1}s`; /* Faster twinkle */
+                        header.appendChild(star);
+                    }
+                }
+                createStars();
+            </script>
+            <script>
+                if ("serviceWorker" in navigator) {
+                    navigator.serviceWorker.register("{{ url_for('static', filename='service-worker.js') }}")
+                    .then(() => console.log("✅ Service Worker Registered!"))
+                    .catch(error => console.log("❌ Service Worker Registration Failed:", error));
+                }
+            </script>
+
+</body>
+</html>
+
+
+

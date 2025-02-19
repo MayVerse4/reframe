@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ReFrame</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: black;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* Adjust spacing between texts */
+        }
+
+        .glow-effect {
+            position: fixed;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255,165,0,1) 10%, rgba(255,69,0,0.5) 50%, rgba(0,0,0,0) 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            filter: blur(20px);
+            animation: pulseGlow 1.5s infinite ease-in-out;
+        }
+        .container {
+            text-align: center;
+        }
+        .typing-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+            visibility: visible;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 0;
+            min-width: fit-content;
+            border-right: 2px solid orange; /* Cursor */
+            animation: typing 2s steps(12, end) forwards, blinkCursor 0.5s step-end infinite;
+        }
+        .fade-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: transparent;
+            display: inline-flex;
+            min-width: fit-content;
+            background: linear-gradient(to right, #ffa500, #ff4500);
+            background-clip: text;
+            -webkit-background-clip: text;
+            opacity: 0;
+            animation: fadeIn 1.5s ease-in-out 2s forwards;
+        }
+
+        .glowing-border {
+            position: relative;
+            margin-top: 30px;
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background: black;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: 0.3s;
+            border: 1px solid white; /* Thin white border initially */
+
+        }
+
+        .glowing-border::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(270deg, #8a2be2, #ff1493, #00bfff);
+            background-size: 200% 200%;
+            border-radius: 8px;
+            z-index: -1;
+            animation: borderFlow 3s linear infinite;
+        }
+
+        .glowing-border:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+                filter: blur(15px);
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.4;
+                filter: blur(23px);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+                filter: blur(15px);
+            }
+        }
+
+        @keyframes blinkCursor {
+            50% { border-color: transparent; }
+        }
+
+        /* Remove Cursor After Typing */
+        @keyframes removeCursor {
+            0% { border-color: orange; }
+            100% { border-color: transparent; }
+        
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 10ch; }
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; filter: blur(5px); }
+            100% { opacity: 1; filter: blur(0); }
+        }
+
+    </style>
+</head>
+
+<body class="flex items-center justify-center h-screen text-white">
+    <div class="glow-effect"></div>
+    <div class="text-center">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="ReFrame Logo" class="mx-auto w-20 h-20 mb-4">
+        
+        <h1 class="flex justify-center items-center gap-2">
+            <span class="typing-text" id="typing"></span>
+            <span class="fade-text" id="fade-text">ReFrame</span>
+        </h1>
+        
+        <button id="start-button" onclick="window.location.href='/home'" 
+                class="glowing-border">
+            Get Started
+        </button>
+    
+    </div>
+
+    <script>
+        const glowEffect = document.querySelector('.glow-effect');
+        const button = document.querySelector('button');
+        const typingElement = document.getElementById("typing");
+        const fadeText = document.getElementById("fade-text");
+
+        function typeEffect() {
+            let text = "Welcome to";
+            let index = 0;
+
+            function type() {
+                if (index < text.length) {
+                    typingElement.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, 200); // Typing speed
+                } else {
+                    // Remove cursor after 500ms
+                    setTimeout(() => {
+                            typingElement.style.borderRight = "none";
+                    }, 410);
+                }
+            }
+
+            type(); // Start typing effect
+        }
+
+        // Run Typing Effect on Page Load
+        document.addEventListener("DOMContentLoaded", () => {
+            typeEffect();
+        });
+
+
+        // Initially hide the glow effect
+        glowEffect.style.display = 'none';
+    
+        document.addEventListener('mousemove', (e) => {
+            // Make glow visible when mouse moves
+            glowEffect.style.display = 'block';
+    
+            // Check if the mouse is over the "Get Started" button
+            const buttonRect = button.getBoundingClientRect();
+            if (
+                e.clientX >= buttonRect.left &&
+                e.clientX <= buttonRect.right &&
+                e.clientY >= buttonRect.top &&
+                e.clientY <= buttonRect.bottom
+            ) {
+                glowEffect.style.display = 'none'; // Hide glow when over button
+            } else {
+                glowEffect.style.display = 'block'; // Show otherwise
+            }
+    
+            // Move glow with precise centering
+            const rect = glowEffect.getBoundingClientRect();
+            glowEffect.style.left = `${e.clientX - rect.width / 2}px`;
+            glowEffect.style.top = `${e.clientY - rect.height / 2}px`;
+        });
+    </script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.log('Service Worker registered!', reg))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+    </script>
+</body>
+</html>

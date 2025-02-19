@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator</title>
+    <style>
+        /* Full-screen black background */
+        body {
+            background: black;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Stars Container */
+        .stars {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            overflow: hidden;
+        }
+
+        /* Individual Stars */
+        .stars span {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 5s infinite ease-in-out;
+        }
+
+        /* Twinkling Animation */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Sun in the center */
+        .sun {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #ffcc00, #ff6600);
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(255, 204, 0, 0.8);
+            position: absolute;
+        }
+
+
+        /* Planets */
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            animation: orbit linear infinite;
+        }
+
+        /* Go Back Button */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 5px;
+            transition: 0.5s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: linear-gradient(90deg, #ff6a00, #ff00ff, #00ffff);
+            background-size: 400% 400%;
+            animation: gradientMove 2s infinite alternate;
+            transform: scale(1.1);
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        /* Orbiting effect */
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translateX(var(--distance)) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(var(--distance)) rotate(-360deg); }
+        }
+
+        /* End Credits Box */
+        .credits-box {
+            position: fixed;
+            bottom: 50px; /* Proper margin from bottom */
+            right: 50px;  /* Proper margin from right */
+            width: 200px; /* Rectangle shape */
+            height: 300px;
+            background: black;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            overflow: hidden;
+            border: 0.2px solid rgb(46, 46, 46);
+            font-family: 'Cinzel', serif;
+            font-size: 11px; /* Adjust size */
+            text-transform: uppercase; /* Makes it look professional */
+            letter-spacing: 1.5px;
+        }
+
+        .credits-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            animation: scrollCredits 11s linear infinite;
+        }
+
+        @keyframes scrollCredits {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(-100%); }
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+    <!-- Starry Background -->
+    <div class="stars"></div>
+
+    <!-- Go Back Button -->
+    <a href="{{ url_for('index') }}" class="back-button"> ⇦ Go Back</a>
+
+    <script>
+        // Generate multiple twinkling stars dynamically
+        const starContainer = document.querySelector('.stars');
+
+        function createStar() {
+            let star = document.createElement('span');
+            let size = Math.random() * 3 + 1;  // Random size between 1px and 4px
+            let posX = Math.random() * window.innerWidth;
+            let posY = Math.random() * window.innerHeight;
+            let delay = Math.random() * 5;  // Random delay for staggered twinkling
+
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.top = `${posY}px`;
+            star.style.left = `${posX}px`;
+            star.style.animationDelay = `${delay}s`;
+
+            starContainer.appendChild(star);
+        }
+
+        // Create 150 stars
+        for (let i = 0; i < 150; i++) {
+            createStar();
+        }
+
+        const planets = [
+            { size: 20, color: 'lightblue', distance: '120px', duration: '5s' },
+            { size: 25, color: 'red', distance: '170px', duration: '6s' },
+            { size: 30, color: 'green', distance: '230px', duration: '7s' },
+            { size: 18, color: 'orange', distance: '290px', duration: '8s' },
+            { size: 22, color: 'purple', distance: '350px', duration: '9s' },
+            { size: 28, color: 'cyan', distance: '410px', duration: '10s' },
+            { size: 35, color: 'pink', distance: '480px', duration: '12s' }
+        ];
+
+        planets.forEach(planet => {
+            let p = document.createElement('div');
+            p.className = 'planet';
+            p.style.width = `${planet.size}px`;
+            p.style.height = `${planet.size}px`;
+            p.style.background = planet.color;
+            p.style.animationDuration = planet.duration;
+            p.style.setProperty('--distance', planet.distance);
+            document.body.appendChild(p);
+        });
+
+    </script>
+
+    <!-- Sun -->
+    <div class="sun"></div>
+    <div class="credits-box">
+        <div class="credits-content">
+            <h3>End Credits</h3>
+            <p>Directed by Mayank</p>
+            <p>Written by ChatGPT</p>
+            <p>Animations by Mayank</p>
+            <p>Effects by Mayank</p>
+            <p>Final Touches by Mayank</p>
+            <p>Guided by ChatGPT</p>
+            <p>Powered by DeepSeek</p>
+            <p>Co-Powered by Tailwind</p>
+            <p>Presented by HTML</p>
+            <p>Co-Presented by Python</p>
+            <p>Hosted by VS Code</p>
+            <p>Debugged by Pure Determination</p>
+            <p>Tested on RTX 4050</p>
+            <p>Inspired by Late Night Coding</p>
+            <p>Special Thanks to Ctrl + Z</p>
+            <p>Special Thanks to Ctrl + v</p>
+            <p>No Bugs Were Harmed in the Making</p>
+            <p>Thank You</p>
+            <p>The End</p>
+        </div>
+    </div>
+    
+</body>
+</html>
