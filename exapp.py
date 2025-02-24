@@ -6,8 +6,7 @@ import json
 from flask import Response
 
 app = Flask(__name__)
-
-OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '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')  # Load API key from environment variables
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")    # Load API key from environment variables
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL_NAME = "deepseek/deepseek-r1:free"  # Change this if needed
 
