@@ -7,8 +7,6 @@ from flask import Response
 
 app = Flask(__name__)
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-print(f"Debug: API Key Loaded? {'Yes' if OPENROUTER_API_KEY else 'No'}")
-    # Load API key from environment variables
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL_NAME = "deepseek/deepseek-r1:free"  # Change this if needed
 
